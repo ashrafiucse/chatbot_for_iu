@@ -1,7 +1,7 @@
 import nltk
-nltk.download('stopwords')
-nltk.download('punkt')
-nltk.download('wordnet')
+#nltk.download('stopwords')
+#nltk.download('punkt')
+#nltk.download('wordnet')
 import speech_recognition as sr
 import pyttsx3
 import random
@@ -54,7 +54,7 @@ intents = {
 
   {
       "tag": "greeting_about",
-      "patterns": ["How are you?"],
+      "patterns": ["How about you?"],
       "responses": ["I am fine.Thank you.How can I help you?"],
       "context_set": ""
     },
@@ -111,7 +111,7 @@ intents = {
 
     {
       "tag": "department_chairman",
-      "patterns": ["Who is the chairman of CSE department?", "Who is the chairman of Computer Science Engineering department?", "Chairman name of CSE department"],
+      "patterns": ["Who is the chairman of CSE department?","what is the name of our chairman?", "Who is the chairman of Computer Science Engineering department?", "Chairman name of CSE department"],
       "responses": ["The name of Chairman of Computer Science and Engineering department is Prof. Dr. Md. Robiul Hoque"],
       "context_set": ""
     },
@@ -179,8 +179,6 @@ for intent in intents['intents']:
                 text_data.append(augmented_sentence)
                 labels.append(intent['tag'])
 
-text_data
-
 #-----------------------------------------
 vectorizer = TfidfVectorizer()
 X = vectorizer.fit_transform(text_data)
@@ -191,7 +189,7 @@ def find_best_model(X, y, test_size=0.2):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=100)
 
 
-    models = [
+    models1 = [
         ('Logistic Regression', LogisticRegression(), {
             'penalty': ['l2'],
             'C': [0.1, 1.0, 10.0],
@@ -218,7 +216,14 @@ def find_best_model(X, y, test_size=0.2):
             'min_samples_leaf': [1, 2, 4]
         })
     ]
-
+    models = [
+        ('Decision Tree', DecisionTreeClassifier(), {
+            'max_depth': [5, 10, 20, None],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 4],
+            'criterion': ['gini', 'entropy']
+        })
+    ]
     for name, model, param_grid in models:
         grid = GridSearchCV(model, param_grid, cv=3, n_jobs=-1)
         grid.fit(X_train, y_train)
@@ -263,6 +268,7 @@ if not os.path.exists('dataset'):
 with open('model/chatbot_model.pkl', 'wb') as f:
     pickle.dump(best_model, f)
 
+
 # Save the vectorizer
 with open('model/vectorizer.pkl', 'wb') as f:
     pickle.dump(vectorizer, f)
@@ -272,24 +278,66 @@ with open('dataset/intents1.json', 'w') as f:
     json.dump(intents, f)
 
 #--------------------------------------------
+import serial
+import time
+arduino = serial.Serial(port='COM3', baudrate=9600, timeout=.1)
+def write_read(x):
+	   arduino.write(bytes(x, 'utf-8'))
+	   time.sleep(0.05)
 
-print('Hello! I am a chatbot. How can I help you today? Type "bye bye" to exit.')
+#---------------------------------
+print('Hello! I am a robot Rufaidah. How can I help you today? Type "terminate" to exit.')
 alexa = pyttsx3.init()
 voices = alexa.getProperty('voices')
 alexa.setProperty('voice',voices[1].id)
-alexa.say("Hello! I am a chatbot. How can I help you today? Type bye bye to exit.")
+alexa.say('Hello! I am a robot Rufaaiidaahh. How can I help you today? say "terminate" to exit.')
 alexa.runAndWait()
 while True:
-    audio_text = recognize_speech()
-    # user_input = input('> ')
+    #audio_text = recognize_speech()
+    audio_text = input('> ')
     if audio_text is not None:
         if audio_text.lower() == 'terminate':
             break
-        response = chatbot_response(audio_text)
-        print(response)
-        alexa.say(response)
-        alexa.runAndWait()
+        elif audio_text.lower() == 'salute':
+            num = '4'  # Taking input from user
+            write_read(num)
+            alexa.say("Hello Sir, I am saluting you")
+            alexa.runAndWait()
+            #print(value)  # printing the value
 
-
-
-
+        elif audio_text.lower() == 'stand':
+            #str = "Hello Sir I am saluting you"
+            #alexa.say(str)
+            #time.sleep(1.0)
+            num = '0'  # Taking input from user
+            write_read(num)
+            #time.sleep(2.0)
+            #str = "Thank you sir"
+            #alexa.say(str)
+        elif audio_text.lower() == 'sit':
+            #str = "Hello Sir I am saluting you"
+            #alexa.say(str)
+            #time.sleep(1.0)
+            num = '1'  # Taking input from user
+            write_read(num)
+            #time.sleep(2.0)
+            #str = "Thank you sir"
+            #alexa.say(str)
+        elif audio_text.lower() == 'listen':
+            str = "yes dear!"
+            print(str)
+            alexa.say(str)
+            alexa.runAndWait()
+            while True:
+                audio_text = input('> ')
+                #audio_text = recognize_speech()
+                if audio_text == "bye":
+                    response = chatbot_response(audio_text)
+                    print(response)
+                    alexa.say(response)
+                    alexa.runAndWait()
+                    break;
+                response = chatbot_response(audio_text)
+                print(response)
+                alexa.say(response)
+                alexa.runAndWait()
